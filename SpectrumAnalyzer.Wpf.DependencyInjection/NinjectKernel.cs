@@ -1,6 +1,6 @@
 ﻿using Ninject;
 
-namespace SpectrumAnalyzer.ViewModel.Module
+namespace SpectrumAnalyzer.Wpf.DependencyInjection
 {
     public class NinjectKernel
     {

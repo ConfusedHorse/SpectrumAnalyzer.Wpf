@@ -119,7 +119,6 @@
     <Compile Include="AnalyzerViewModel.cs" />
     <Compile Include="Helpers\ColorHelper.cs" />
     <Compile Include="Module\BassModule.cs" />
-    <Compile Include="Module\NinjectKernel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>

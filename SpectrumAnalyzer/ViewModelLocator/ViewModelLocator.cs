@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using Ninject;
 using SpectrumAnalyzer.Bass.ViewModel;
-using SpectrumAnalyzer.ViewModel.Module;
+using SpectrumAnalyzer.Wpf.DependencyInjection;
 
 namespace SpectrumAnalyzer.ViewModelLocator
 {

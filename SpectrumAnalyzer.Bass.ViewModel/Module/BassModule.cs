@@ -1,7 +1,6 @@
 ﻿using Ninject.Modules;
-using SpectrumAnalyzer.Bass.ViewModel;
 
-namespace SpectrumAnalyzer.ViewModel.Module
+namespace SpectrumAnalyzer.Bass.ViewModel.Module
 {
     public class BassModule : NinjectModule
     {
