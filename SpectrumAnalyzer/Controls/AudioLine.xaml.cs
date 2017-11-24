@@ -53,8 +53,8 @@ namespace SpectrumAnalyzer.Controls
             set
             {
                 double newValue;
-                if (value > Value + SpeedRaising) newValue = Value + SpeedRaising;
-                else if (value < Value - SpeedDropping) newValue = Value - SpeedDropping;
+                if (SpeedRaising > 0 && value > Value + SpeedRaising) newValue = Value + SpeedRaising;
+                else if (SpeedDropping > 0 && value < Value - SpeedDropping) newValue = Value - SpeedDropping;
                 else newValue = value;
 
                 SetValue(ValueProperty, newValue);
@@ -89,7 +89,8 @@ namespace SpectrumAnalyzer.Controls
         }
 
         public static readonly DependencyProperty SpeedRaisingProperty = DependencyProperty.Register(
-            "SpeedRaising", typeof(double), typeof(AudioLine), new PropertyMetadata(25.5d));
+            "SpeedRaising", typeof(double), typeof(AudioLine), new PropertyMetadata(0d)); 
+        //formerly 25.5d (which makes the frequencies appear delayed)
 
         public double SpeedRaising
         {

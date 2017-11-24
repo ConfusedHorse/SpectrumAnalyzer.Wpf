@@ -12,6 +12,7 @@
                       SizeToContent="WidthAndHeight" Background="Black" 
                       DataContext="{Binding AnalyzerViewModel, Source={x:Static module:ViewModelLocator.Instance}}">
     <windows:BlurryWindow.Resources>
+        <system:Double x:Key="ActualDropping">25.5</system:Double>
         <system:Double x:Key="ShadowDropping">0.0511</system:Double>
         <system:Double x:Key="ShadowOpacity">0.3</system:Double>
         <system:Boolean x:Key="PitchColor">True</system:Boolean>
@@ -20,7 +21,6 @@
     </windows:BlurryWindow.Resources>
     
     <Grid Margin="25 0">
-        <!-- [Spor - Aztek] is a really nice song to look at! :) -->
         <StackPanel Orientation="Vertical">
             <Grid Tag="Spectrum" Height="100">
                 <controls:AudioSpectrum Data="{Binding SpectrumData}"
@@ -32,7 +32,8 @@
                 <controls:AudioSpectrum Data="{Binding SpectrumData}"
                                         PitchColor="{StaticResource PitchColor}"
                                         ForegroundPitched="{StaticResource ForegroundPitched}"
-                                        Foreground="{StaticResource Foreground}"/>
+                                        Foreground="{StaticResource Foreground}"
+                                        SpeedDropping="{StaticResource ActualDropping}"/>
             </Grid>
             <Grid Tag="Reflection" Height="50" RenderTransformOrigin="0.5 0.5">
                 <Grid.Effect>
