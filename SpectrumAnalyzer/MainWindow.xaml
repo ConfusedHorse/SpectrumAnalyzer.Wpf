@@ -1,0 +1,64 @@
+﻿<windows:BlurryWindow x:Class="SpectrumAnalyzer.MainWindow"
+                      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                      xmlns:controls="clr-namespace:SpectrumAnalyzer.Controls"
+                      xmlns:module="clr-namespace:SpectrumAnalyzer.ViewModelLocator"
+                      xmlns:windows="clr-namespace:BlurryControls.Windows;assembly=BlurryControls"
+                      xmlns:system="clr-namespace:System;assembly=mscorlib"
+                      mc:Ignorable="d"
+                      Title="{Binding DefaultAudioDevice}"
+                      SizeToContent="WidthAndHeight" Background="Black" 
+                      DataContext="{Binding AnalyzerViewModel, Source={x:Static module:ViewModelLocator.Instance}}">
+    <windows:BlurryWindow.Resources>
+        <system:Double x:Key="ShadowDropping">0.0511</system:Double>
+        <system:Double x:Key="ShadowOpacity">0.3</system:Double>
+        <system:Boolean x:Key="PitchColor">True</system:Boolean>
+        <SolidColorBrush x:Key="ForegroundPitched" Color="DodgerBlue"/>
+        <SolidColorBrush x:Key="Foreground" Color="DimGray"/>
+    </windows:BlurryWindow.Resources>
+    
+    <Grid Margin="25 0">
+        <!-- [Spor - Aztek] is a really nice song to look at! :) -->
+        <StackPanel Orientation="Vertical">
+            <Grid Tag="Spectrum" Height="100">
+                <controls:AudioSpectrum Data="{Binding SpectrumData}"
+                                        PitchColor="{StaticResource PitchColor}"
+                                        ForegroundPitched="{StaticResource ForegroundPitched}"
+                                        Foreground="{StaticResource Foreground}"
+                                        SpeedDropping="{StaticResource ShadowDropping}"
+                                        Opacity="{StaticResource ShadowOpacity}"/>
+                <controls:AudioSpectrum Data="{Binding SpectrumData}"
+                                        PitchColor="{StaticResource PitchColor}"
+                                        ForegroundPitched="{StaticResource ForegroundPitched}"
+                                        Foreground="{StaticResource Foreground}"/>
+            </Grid>
+            <Grid Tag="Reflection" Height="50" RenderTransformOrigin="0.5 0.5">
+                <Grid.Effect>
+                    <BlurEffect Radius="10"/>
+                </Grid.Effect>
+                <Grid.RenderTransform>
+                    <ScaleTransform ScaleY="-1" />
+                </Grid.RenderTransform>
+                <Grid.OpacityMask>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                        <GradientStop Offset="0" Color="Transparent"/>
+                        <GradientStop Offset="1" Color="Black"/>
+                    </LinearGradientBrush>
+                </Grid.OpacityMask>
+                <controls:AudioSpectrum Data="{Binding SpectrumData}"
+                                        PitchColor="{StaticResource PitchColor}"
+                                        ForegroundPitched="{StaticResource ForegroundPitched}"
+                                        Foreground="{StaticResource Foreground}"
+                                        SpeedDropping="{StaticResource ShadowDropping}"
+                                        Opacity="{StaticResource ShadowOpacity}"/>
+                <controls:AudioSpectrum Data="{Binding SpectrumData}"
+                                        PitchColor="{StaticResource PitchColor}"
+                                        ForegroundPitched="{StaticResource ForegroundPitched}"
+                                        Foreground="{StaticResource Foreground}"/>
+            </Grid>
+        </StackPanel>
+    </Grid>
+</windows:BlurryWindow>
+
