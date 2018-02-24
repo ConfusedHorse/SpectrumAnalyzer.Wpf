@@ -1,7 +1,5 @@
 ﻿using System.ComponentModel;
-using Ninject;
-using SpectrumAnalyzer.Bass.ViewModel;
-using SpectrumAnalyzer.Wpf.DependencyInjection;
+using SpectrumAnalyzer.Models;
 
 namespace SpectrumAnalyzer.ViewModelLocator
 {
@@ -22,11 +20,15 @@ namespace SpectrumAnalyzer.ViewModelLocator
 
         #endregion Singleton
 
-        public AnalyzerViewModel AnalyzerViewModel => NinjectKernel.StandardKernel.Get<AnalyzerViewModel>();
+        private AnalyzerViewModel _analyzerViewModel;
 
-        public static void Cleanup()
-        {
+        public AnalyzerViewModel AnalyzerViewModel => _analyzerViewModel 
+            ?? (_analyzerViewModel = 
+                new AnalyzerViewModel(
+                    Properties.Settings.Default.Bins,
+                    Properties.Settings.Default.Rate,
+                    Properties.Settings.Default.Normal));
 
-        }
+        
     }
 }

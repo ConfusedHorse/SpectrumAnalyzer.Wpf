@@ -1,17 +1,22 @@
 ﻿using System;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Media;
-using SpectrumAnalyzer.Bass.ViewModel;
-using SpectrumAnalyzer.Bass.ViewModel.Helpers;
+using SpectrumAnalyzer.Helpers;
+using SpectrumAnalyzer.Models;
 
 namespace SpectrumAnalyzer.Controls
 {
     /// <summary>
     /// Interaktionslogik für AudioLine.xaml
     /// </summary>
-    public partial class AudioLine : UserControl
+    public partial class AudioLine
     {
+        #region Fields
+
+        private double _currentValue;
+
+        #endregion
+
         #region Dependency Properties
 
         public new static readonly DependencyProperty ForegroundProperty = DependencyProperty.Register(
@@ -44,34 +49,25 @@ namespace SpectrumAnalyzer.Controls
             set => SetValue(PitchColorProperty, value);
         }
 
-        public static readonly DependencyProperty ValueProperty = DependencyProperty.Register(
-            "Value", typeof(double), typeof(AudioLine), new PropertyMetadata(10d));
-        
-        public double Value
+        public static readonly DependencyProperty FrequencyBinProperty = DependencyProperty.Register(
+            "FrequencyBin", typeof(FrequencyBin), typeof(AudioLine), new PropertyMetadata(default(FrequencyBin), OnFrequencyBinChanged));
+
+        private static void OnFrequencyBinChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            get => (double) GetValue(ValueProperty);
-            set
-            {
-                double newValue;
-                if (SpeedRaising > 0 && value > Value + SpeedRaising) newValue = Value + SpeedRaising;
-                else if (SpeedDropping > 0 && value < Value - SpeedDropping) newValue = Value - SpeedDropping;
-                else newValue = value;
+            if (!(d is AudioLine al)) return;
+            var newDataContext = (FrequencyBin) e.NewValue;
 
-                SetValue(ValueProperty, newValue);
-                if (newValue >= Maximum) AudioLineRectangle.Height = Height;
-                else
-                    AudioLineRectangle.Height = newValue <= Minimum
-                        ? Minimum / Maximum * Height
-                        : newValue / Maximum * Height;
+            newDataContext.ValueChanged += (sender, args) => { UpdateVisuals(al, newDataContext.Value); };
+        }
 
-                if (PitchColor)
-                    AudioLineRectangle.Fill =
-                        new SolidColorBrush(Foreground.Color.Merge(ForegroundPitched.Color, value / Maximum));
-            }
+        public FrequencyBin FrequencyBin
+        {
+            get => (FrequencyBin) GetValue(FrequencyBinProperty);
+            set => SetValue(FrequencyBinProperty, value);
         }
 
         public static readonly DependencyProperty MaximumProperty = DependencyProperty.Register(
-            "Maximum", typeof(double), typeof(AudioLine), new PropertyMetadata(255d));
+            "Normal", typeof(double), typeof(AudioLine), new PropertyMetadata(255d));
 
         public double Maximum
         {
@@ -84,7 +80,7 @@ namespace SpectrumAnalyzer.Controls
 
         public double SpeedDropping
         {
-            get => (double) GetValue(SpeedDroppingProperty) * AnalyzerViewModel.Hertz;
+            get => (double) GetValue(SpeedDroppingProperty) * Properties.Settings.Default.Rate;
             set => SetValue(SpeedDroppingProperty, value);
         }
 
@@ -94,20 +90,13 @@ namespace SpectrumAnalyzer.Controls
 
         public double SpeedRaising
         {
-            get => (double) GetValue(SpeedRaisingProperty);
+            get => (double) GetValue(SpeedRaisingProperty) * Properties.Settings.Default.Rate;
             set => SetValue(SpeedRaisingProperty, value);
         }
 
         #endregion
 
-        private double Minimum => Width / Height * Maximum;
-
-        public static AudioLine Default => new AudioLine
-        {
-            Margin = new Thickness(3),
-            Width = 3,
-            Maximum = AnalyzerViewModel.Normal
-        };
+        private double Minimum => ActualWidth / ActualHeight * Maximum;
 
         public AudioLine()
         {
@@ -122,7 +111,24 @@ namespace SpectrumAnalyzer.Controls
             AudioLineRectangle.RadiusY = Width / 2;
             AudioLineRectangle.Width = Width;
             AudioLineRectangle.Fill = Foreground;
-            Value = Value;
+            UpdateVisuals(this, FrequencyBin.Value);
+        }
+
+        private static void UpdateVisuals(AudioLine al, double value)
+        {
+            if (al.SpeedRaising > 0 && value > al._currentValue + al.SpeedRaising) al._currentValue = al._currentValue + al.SpeedRaising;
+            else if (al.SpeedDropping > 0 && value < al._currentValue - al.SpeedDropping) al._currentValue = al._currentValue - al.SpeedDropping;
+            else al._currentValue = value;
+
+            al.AudioLineRectangle.Height = al._currentValue >= al.Maximum
+                ? al.ActualHeight
+                : (al._currentValue <= al.Minimum
+                    ? al.Minimum / al.Maximum * al.ActualHeight
+                    : al._currentValue / al.Maximum * al.ActualHeight);
+
+            if (al.PitchColor)
+                al.AudioLineRectangle.Fill =
+                    new SolidColorBrush(al.Foreground.Color.Merge(al.ForegroundPitched.Color, value / al.Maximum));
         }
     }
 }

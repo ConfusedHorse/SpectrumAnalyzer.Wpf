@@ -5,15 +5,17 @@
                       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                       xmlns:controls="clr-namespace:SpectrumAnalyzer.Controls"
                       xmlns:module="clr-namespace:SpectrumAnalyzer.ViewModelLocator"
-                      xmlns:windows="clr-namespace:BlurryControls.Windows;assembly=BlurryControls"
+                      xmlns:windows="clr-namespace:BlurryControls.Controls;assembly=BlurryControls"
                       xmlns:system="clr-namespace:System;assembly=mscorlib"
                       mc:Ignorable="d"
-                      Title="{Binding DefaultAudioDevice}"
+                      Title="{Binding CurrentAudioDevice}"
                       SizeToContent="WidthAndHeight" Background="Black" 
                       DataContext="{Binding AnalyzerViewModel, Source={x:Static module:ViewModelLocator.Instance}}">
     <windows:BlurryWindow.Resources>
+        <system:Double x:Key="ActualRaising">25.5</system:Double>
         <system:Double x:Key="ActualDropping">25.5</system:Double>
         <system:Double x:Key="ShadowDropping">0.0511</system:Double>
+        <system:Double x:Key="ShadowRaising">25.5</system:Double>
         <system:Double x:Key="ShadowOpacity">0.3</system:Double>
         <system:Boolean x:Key="PitchColor">True</system:Boolean>
         <SolidColorBrush x:Key="ForegroundPitched" Color="DodgerBlue"/>
@@ -23,16 +25,16 @@
     <Grid Margin="25 0">
         <StackPanel Orientation="Vertical">
             <Grid Tag="Spectrum" Height="100">
-                <controls:AudioSpectrum Data="{Binding SpectrumData}"
-                                        PitchColor="{StaticResource PitchColor}"
+                <controls:AudioSpectrum PitchColor="{StaticResource PitchColor}"
                                         ForegroundPitched="{StaticResource ForegroundPitched}"
                                         Foreground="{StaticResource Foreground}"
+                                        SpeedRaising="{StaticResource ShadowRaising}"
                                         SpeedDropping="{StaticResource ShadowDropping}"
                                         Opacity="{StaticResource ShadowOpacity}"/>
-                <controls:AudioSpectrum Data="{Binding SpectrumData}"
-                                        PitchColor="{StaticResource PitchColor}"
+                <controls:AudioSpectrum PitchColor="{StaticResource PitchColor}"
                                         ForegroundPitched="{StaticResource ForegroundPitched}"
                                         Foreground="{StaticResource Foreground}"
+                                        SpeedRaising="{StaticResource ActualRaising}"
                                         SpeedDropping="{StaticResource ActualDropping}"/>
             </Grid>
             <Grid Tag="Reflection" Height="50" RenderTransformOrigin="0.5 0.5">
@@ -48,16 +50,17 @@
                         <GradientStop Offset="1" Color="Black"/>
                     </LinearGradientBrush>
                 </Grid.OpacityMask>
-                <controls:AudioSpectrum Data="{Binding SpectrumData}"
-                                        PitchColor="{StaticResource PitchColor}"
+                <controls:AudioSpectrum PitchColor="{StaticResource PitchColor}"
                                         ForegroundPitched="{StaticResource ForegroundPitched}"
                                         Foreground="{StaticResource Foreground}"
+                                        SpeedRaising="{StaticResource ShadowRaising}"
                                         SpeedDropping="{StaticResource ShadowDropping}"
                                         Opacity="{StaticResource ShadowOpacity}"/>
-                <controls:AudioSpectrum Data="{Binding SpectrumData}"
-                                        PitchColor="{StaticResource PitchColor}"
+                <controls:AudioSpectrum PitchColor="{StaticResource PitchColor}"
                                         ForegroundPitched="{StaticResource ForegroundPitched}"
-                                        Foreground="{StaticResource Foreground}"/>
+                                        Foreground="{StaticResource Foreground}"
+                                        SpeedRaising="{StaticResource ActualRaising}"
+                                        SpeedDropping="{StaticResource ActualDropping}"/>
             </Grid>
         </StackPanel>
     </Grid>

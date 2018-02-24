@@ -1,13 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26403.0
+VisualStudioVersion = 15.0.27130.2020
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpectrumAnalyzer", "SpectrumAnalyzer\SpectrumAnalyzer.csproj", "{BD676BB2-93D2-4412-A122-5DD0D2AA23C7}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpectrumAnalyzer.Bass.ViewModel", "SpectrumAnalyzer.Bass.ViewModel\SpectrumAnalyzer.Bass.ViewModel.csproj", "{CFC3F6A0-09E2-4342-93C4-59FC68CA2C25}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpectrumAnalyzer.Wpf.DependencyInjection", "SpectrumAnalyzer.Wpf.DependencyInjection\SpectrumAnalyzer.Wpf.DependencyInjection.csproj", "{5761AB25-AEFD-4669-A79B-8F1EA427918F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -31,32 +27,11 @@ Global
 		{BD676BB2-93D2-4412-A122-5DD0D2AA23C7}.Release|x64.Build.0 = Release|x64
 		{BD676BB2-93D2-4412-A122-5DD0D2AA23C7}.Release|x86.ActiveCfg = Release|x86
 		{BD676BB2-93D2-4412-A122-5DD0D2AA23C7}.Release|x86.Build.0 = Release|x86
-		{CFC3F6A0-09E2-4342-93C4-59FC68CA2C25}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CFC3F6A0-09E2-4342-93C4-59FC68CA2C25}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CFC3F6A0-09E2-4342-93C4-59FC68CA2C25}.Debug|x64.ActiveCfg = Debug|x64
-		{CFC3F6A0-09E2-4342-93C4-59FC68CA2C25}.Debug|x64.Build.0 = Debug|x64
-		{CFC3F6A0-09E2-4342-93C4-59FC68CA2C25}.Debug|x86.ActiveCfg = Debug|x86
-		{CFC3F6A0-09E2-4342-93C4-59FC68CA2C25}.Debug|x86.Build.0 = Debug|x86
-		{CFC3F6A0-09E2-4342-93C4-59FC68CA2C25}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CFC3F6A0-09E2-4342-93C4-59FC68CA2C25}.Release|Any CPU.Build.0 = Release|Any CPU
-		{CFC3F6A0-09E2-4342-93C4-59FC68CA2C25}.Release|x64.ActiveCfg = Release|x64
-		{CFC3F6A0-09E2-4342-93C4-59FC68CA2C25}.Release|x64.Build.0 = Release|x64
-		{CFC3F6A0-09E2-4342-93C4-59FC68CA2C25}.Release|x86.ActiveCfg = Release|x86
-		{CFC3F6A0-09E2-4342-93C4-59FC68CA2C25}.Release|x86.Build.0 = Release|x86
-		{5761AB25-AEFD-4669-A79B-8F1EA427918F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5761AB25-AEFD-4669-A79B-8F1EA427918F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5761AB25-AEFD-4669-A79B-8F1EA427918F}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{5761AB25-AEFD-4669-A79B-8F1EA427918F}.Debug|x64.Build.0 = Debug|Any CPU
-		{5761AB25-AEFD-4669-A79B-8F1EA427918F}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{5761AB25-AEFD-4669-A79B-8F1EA427918F}.Debug|x86.Build.0 = Debug|Any CPU
-		{5761AB25-AEFD-4669-A79B-8F1EA427918F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5761AB25-AEFD-4669-A79B-8F1EA427918F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5761AB25-AEFD-4669-A79B-8F1EA427918F}.Release|x64.ActiveCfg = Release|Any CPU
-		{5761AB25-AEFD-4669-A79B-8F1EA427918F}.Release|x64.Build.0 = Release|Any CPU
-		{5761AB25-AEFD-4669-A79B-8F1EA427918F}.Release|x86.ActiveCfg = Release|Any CPU
-		{5761AB25-AEFD-4669-A79B-8F1EA427918F}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {653EC31C-5EEB-494B-AE33-D9AF4C8A047C}
 	EndGlobalSection
 EndGlobal
