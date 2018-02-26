@@ -83,7 +83,7 @@ namespace SpectrumAnalyzer.Models
 
         private void CaptureDefaultDevice()
         {
-            _process = new WASAPIPROC(Process);
+            _process = Process;
             var defaultDevice = BassWasapi.BASS_WASAPI_GetDeviceInfos().FirstOrDefault(d => d.IsDefault && !d.IsInput);
             var devices = BassWasapi.BASS_WASAPI_GetDeviceInfos(); // MUST be compiled as x86 since basswasapi.dll is ancient
             _defaultAudioDevice = devices.FirstOrDefault(d => d.IsEnabled && d.IsLoopback && d.name == defaultDevice?.name);
