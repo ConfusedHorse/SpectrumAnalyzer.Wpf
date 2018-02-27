@@ -4,11 +4,11 @@
                       xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                       xmlns:controls="clr-namespace:SpectrumAnalyzer.Controls"
-                      xmlns:module="clr-namespace:SpectrumAnalyzer.ViewModelLocator"
                       xmlns:windows="clr-namespace:BlurryControls.Controls;assembly=BlurryControls"
                       xmlns:system="clr-namespace:System;assembly=mscorlib"
+                      xmlns:module="clr-namespace:SpectrumAnalyzer.Singleton"
                       mc:Ignorable="d"
-                      Title="{Binding CurrentAudioDevice}"
+                      Title="{Binding CurrentAudioDevice.FriendlyName}"
                       SizeToContent="WidthAndHeight" Background="Black" 
                       DataContext="{Binding AnalyzerViewModel, Source={x:Static module:ViewModelLocator.Instance}}">
     <windows:BlurryWindow.Resources>
@@ -64,9 +64,57 @@
                                             SpeedDropping="{StaticResource ActualDropping}"/>
                 </Grid>
             </StackPanel>
+
+            <StackPanel Orientation="Vertical" VerticalAlignment="Center">
+                <Rectangle Height="20"
+                           Width="20"
+                           Margin="5"
+                           ToolTip="High">
+                    <Rectangle.Style>
+                        <Style TargetType="Rectangle">
+                            <Setter Property="Fill" Value="DimGray"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding HighBeat, UpdateSourceTrigger=PropertyChanged}" Value="True">
+                                    <Setter Property="Fill" Value="LightGray"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Rectangle.Style>
+                </Rectangle>
+                <Rectangle Height="20"
+                           Width="20"
+                           Margin="5"
+                           ToolTip="Mids">
+                    <Rectangle.Style>
+                        <Style TargetType="Rectangle">
+                            <Setter Property="Fill" Value="DimGray"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding MidsBeat, UpdateSourceTrigger=PropertyChanged}" Value="True">
+                                    <Setter Property="Fill" Value="LightGray"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Rectangle.Style>
+                </Rectangle>
+                <Rectangle Height="20"
+                           Width="20"
+                           Margin="5"
+                           ToolTip="Bass">
+                    <Rectangle.Style>
+                        <Style TargetType="Rectangle">
+                            <Setter Property="Fill" Value="DimGray"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding BassBeat, UpdateSourceTrigger=PropertyChanged}" Value="True">
+                                    <Setter Property="Fill" Value="LightGray"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Rectangle.Style>
+                </Rectangle>
+            </StackPanel>
             
-            <windows:BlurryColorPicker Height="150"
-                                       ColorChanged="BlurryColorPicker_OnColorChanged"/>
+            <!--<windows:BlurryColorPicker Height="150"
+                                       ColorChanged="BlurryColorPicker_OnColorChanged"/>-->
         </StackPanel>
     </Grid>
 </windows:BlurryWindow>

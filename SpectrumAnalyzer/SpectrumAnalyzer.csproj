@@ -140,12 +140,14 @@
     <Compile Include="Controls\AudioSpectrum.xaml.cs">
       <DependentUpon>AudioSpectrum.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Enums\ScalingStrategy.cs" />
     <Compile Include="Factories\AnalyzerFactory.cs" />
+    <Compile Include="Helpers\ArrayHelper.cs" />
     <Compile Include="Helpers\ColorHelper.cs" />
     <Compile Include="Models\AnalyzerViewModel.cs" />
     <Compile Include="Models\FrequencyBin.cs" />
     <Compile Include="Models\SpectrumProvider.cs" />
-    <Compile Include="ViewModelLocator\ViewModelLocator.cs" />
+    <Compile Include="Singleton\ViewModelLocator.cs" />
     <Page Include="Controls\AudioLine.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

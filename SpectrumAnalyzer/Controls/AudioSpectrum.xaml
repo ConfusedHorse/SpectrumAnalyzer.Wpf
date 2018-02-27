@@ -5,13 +5,13 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:controls="clr-namespace:SpectrumAnalyzer.Controls"
-             xmlns:viewModelLocator="clr-namespace:SpectrumAnalyzer.ViewModelLocator"
+             xmlns:singleton="clr-namespace:SpectrumAnalyzer.Singleton"
              mc:Ignorable="d"
              VerticalAlignment="Stretch"
              DataContext="{Binding AnalyzerViewModel, 
-                                   Source={x:Static viewModelLocator:ViewModelLocator.Instance}}">
+                                   Source={x:Static singleton:ViewModelLocator.Instance}}">
     <ItemsControl x:Name="Spectrum"
-                  ItemsSource="{Binding SpectrumData}">
+                  ItemsSource="{Binding FrequencyBins}">
         <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
                 <StackPanel Orientation="Horizontal"/>

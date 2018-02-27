@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Windows.Media;
 using SpectrumAnalyzer.Controls;
+using SpectrumAnalyzer.Singleton;
 
 namespace SpectrumAnalyzer
 {
@@ -18,7 +19,7 @@ namespace SpectrumAnalyzer
 
         private static void OnClosed(object sender, EventArgs eventArgs)
         {
-            ViewModelLocator.ViewModelLocator.Instance.AnalyzerViewModel.Stop();
+            ViewModelLocator.Instance.AnalyzerViewModel.Stop();
         }
 
         private void BlurryColorPicker_OnColorChanged(object sender, Color color)

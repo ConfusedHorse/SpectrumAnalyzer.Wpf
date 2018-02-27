@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using SpectrumAnalyzer.Models;
 
-namespace SpectrumAnalyzer.ViewModelLocator
+namespace SpectrumAnalyzer.Singleton
 {
     public class ViewModelLocator
     {
