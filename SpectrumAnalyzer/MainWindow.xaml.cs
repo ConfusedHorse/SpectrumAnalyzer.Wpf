@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Linq;
+using System.Windows.Media;
+using SpectrumAnalyzer.Controls;
 
 namespace SpectrumAnalyzer
 {
@@ -16,6 +19,14 @@ namespace SpectrumAnalyzer
         private static void OnClosed(object sender, EventArgs eventArgs)
         {
             ViewModelLocator.ViewModelLocator.Instance.AnalyzerViewModel.Stop();
+        }
+
+        private void BlurryColorPicker_OnColorChanged(object sender, Color color)
+        {
+            foreach (var audioSpectrum in Spectrum.Children.OfType<AudioSpectrum>())
+                audioSpectrum.ForegroundPitched = new SolidColorBrush(color);
+            foreach (var audioSpectrum in Reflection.Children.OfType<AudioSpectrum>())
+                audioSpectrum.ForegroundPitched = new SolidColorBrush(color);
         }
     }
 }

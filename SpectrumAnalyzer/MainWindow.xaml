@@ -21,47 +21,52 @@
         <SolidColorBrush x:Key="ForegroundPitched" Color="DodgerBlue"/>
         <SolidColorBrush x:Key="Foreground" Color="DimGray"/>
     </windows:BlurryWindow.Resources>
-    
-    <Grid Margin="25 0">
-        <StackPanel Orientation="Vertical">
-            <Grid Tag="Spectrum" Height="100">
-                <controls:AudioSpectrum PitchColor="{StaticResource PitchColor}"
-                                        ForegroundPitched="{StaticResource ForegroundPitched}"
-                                        Foreground="{StaticResource Foreground}"
-                                        SpeedRaising="{StaticResource ShadowRaising}"
-                                        SpeedDropping="{StaticResource ShadowDropping}"
-                                        Opacity="{StaticResource ShadowOpacity}"/>
-                <controls:AudioSpectrum PitchColor="{StaticResource PitchColor}"
-                                        ForegroundPitched="{StaticResource ForegroundPitched}"
-                                        Foreground="{StaticResource Foreground}"
-                                        SpeedRaising="{StaticResource ActualRaising}"
-                                        SpeedDropping="{StaticResource ActualDropping}"/>
-            </Grid>
-            <Grid Tag="Reflection" Height="50" RenderTransformOrigin="0.5 0.5">
-                <Grid.Effect>
-                    <BlurEffect Radius="10"/>
-                </Grid.Effect>
-                <Grid.RenderTransform>
-                    <ScaleTransform ScaleY="-1" />
-                </Grid.RenderTransform>
-                <Grid.OpacityMask>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                        <GradientStop Offset="0" Color="Transparent"/>
-                        <GradientStop Offset="1" Color="Black"/>
-                    </LinearGradientBrush>
-                </Grid.OpacityMask>
-                <controls:AudioSpectrum PitchColor="{StaticResource PitchColor}"
-                                        ForegroundPitched="{StaticResource ForegroundPitched}"
-                                        Foreground="{StaticResource Foreground}"
-                                        SpeedRaising="{StaticResource ShadowRaising}"
-                                        SpeedDropping="{StaticResource ShadowDropping}"
-                                        Opacity="{StaticResource ShadowOpacity}"/>
-                <controls:AudioSpectrum PitchColor="{StaticResource PitchColor}"
-                                        ForegroundPitched="{StaticResource ForegroundPitched}"
-                                        Foreground="{StaticResource Foreground}"
-                                        SpeedRaising="{StaticResource ActualRaising}"
-                                        SpeedDropping="{StaticResource ActualDropping}"/>
-            </Grid>
+
+    <Grid>
+        <StackPanel Orientation="Horizontal">
+            <StackPanel Orientation="Vertical" Margin="25 0">
+                <Grid x:Name="Spectrum" Height="100">
+                    <controls:AudioSpectrum PitchColor="{StaticResource PitchColor}"
+                                            ForegroundPitched="{StaticResource ForegroundPitched}"
+                                            Foreground="{StaticResource Foreground}"
+                                            SpeedRaising="{StaticResource ShadowRaising}"
+                                            SpeedDropping="{StaticResource ShadowDropping}"
+                                            Opacity="{StaticResource ShadowOpacity}"/>
+                    <controls:AudioSpectrum PitchColor="{StaticResource PitchColor}"
+                                            ForegroundPitched="{StaticResource ForegroundPitched}"
+                                            Foreground="{StaticResource Foreground}"
+                                            SpeedRaising="{StaticResource ActualRaising}"
+                                            SpeedDropping="{StaticResource ActualDropping}"/>
+                </Grid>
+                <Grid x:Name="Reflection" Height="50" RenderTransformOrigin="0.5 0.5">
+                    <Grid.Effect>
+                        <BlurEffect Radius="10"/>
+                    </Grid.Effect>
+                    <Grid.RenderTransform>
+                        <ScaleTransform ScaleY="-1" />
+                    </Grid.RenderTransform>
+                    <Grid.OpacityMask>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                            <GradientStop Offset="0" Color="Transparent"/>
+                            <GradientStop Offset="1" Color="Black"/>
+                        </LinearGradientBrush>
+                    </Grid.OpacityMask>
+                    <controls:AudioSpectrum PitchColor="{StaticResource PitchColor}"
+                                            ForegroundPitched="{StaticResource ForegroundPitched}"
+                                            Foreground="{StaticResource Foreground}"
+                                            SpeedRaising="{StaticResource ShadowRaising}"
+                                            SpeedDropping="{StaticResource ShadowDropping}"
+                                            Opacity="{StaticResource ShadowOpacity}"/>
+                    <controls:AudioSpectrum PitchColor="{StaticResource PitchColor}"
+                                            ForegroundPitched="{StaticResource ForegroundPitched}"
+                                            Foreground="{StaticResource Foreground}"
+                                            SpeedRaising="{StaticResource ActualRaising}"
+                                            SpeedDropping="{StaticResource ActualDropping}"/>
+                </Grid>
+            </StackPanel>
+            
+            <windows:BlurryColorPicker Height="150"
+                                       ColorChanged="BlurryColorPicker_OnColorChanged"/>
         </StackPanel>
     </Grid>
 </windows:BlurryWindow>
