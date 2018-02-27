@@ -68,7 +68,7 @@ namespace SpectrumAnalyzer.Models
 
         public int Normal { get; set; }
 
-        public string CurrentAudioDevice => _soundIn.ToString();
+        public string CurrentAudioDevice { get; set; }
 
         #endregion
 
@@ -83,7 +83,8 @@ namespace SpectrumAnalyzer.Models
 
             _soundIn = new WasapiLoopbackCapture();
             _soundIn.Initialize();
-            
+            CurrentAudioDevice = _soundIn.Device.FriendlyName;
+
             var soundInSource = new SoundInSource(_soundIn);
             _spectrumProvider = new SpectrumProvider(soundInSource.WaveFormat.Channels, soundInSource.WaveFormat.SampleRate, FftSize);
 
