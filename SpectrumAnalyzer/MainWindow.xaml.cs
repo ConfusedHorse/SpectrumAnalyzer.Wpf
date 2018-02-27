@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Windows;
 
 namespace SpectrumAnalyzer
 {
@@ -16,7 +15,7 @@ namespace SpectrumAnalyzer
 
         private static void OnClosed(object sender, EventArgs eventArgs)
         {
-            Application.Current.Shutdown();
+            ViewModelLocator.ViewModelLocator.Instance.AnalyzerViewModel.Stop();
         }
     }
 }

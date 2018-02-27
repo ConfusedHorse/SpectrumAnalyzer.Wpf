@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Windows.Threading;
+using CSCore;
+using CSCore.DSP;
+using CSCore.SoundIn;
+using CSCore.Streams;
 using SpectrumAnalyzer.Factories;
-using Un4seen.Bass;
-using Un4seen.BassWasapi;
 
 namespace SpectrumAnalyzer.Models
 {
@@ -29,15 +30,15 @@ namespace SpectrumAnalyzer.Models
 
         #region Fields
 
-        private const int Samples = 8192;
-
-        private WASAPIPROC _process;
-        private readonly float[] _fft = new float[Samples];
-        private BASS_WASAPI_DEVICEINFO _defaultAudioDevice;
+        private const FftSize FftSize = CSCore.DSP.FftSize.Fft4096;
 
         private readonly DispatcherTimer _updateSpectrumDispatcherTimer = new DispatcherTimer();
         private int _rate;
         private int _bins;
+        private WasapiLoopbackCapture _soundIn;
+        private SpectrumProvider _spectrumProvider;
+        private float[] _spectrumData;
+        private IWaveSource _source;
 
         #endregion
 
@@ -67,7 +68,7 @@ namespace SpectrumAnalyzer.Models
 
         public int Normal { get; set; }
 
-        public string CurrentAudioDevice => _defaultAudioDevice.name;
+        public string CurrentAudioDevice => _soundIn.ToString();
 
         #endregion
 
@@ -75,38 +76,58 @@ namespace SpectrumAnalyzer.Models
 
         private void Initialize()
         {
-            _updateSpectrumDispatcherTimer.Stop();
-            BassWasapi.BASS_WASAPI_Stop(true);
+            Stop();
+
             SpectrumData = new ObservableCollection<FrequencyBin>(AnalyzerFactory.CreateMany(Bins));
-            CaptureDefaultDevice();
-        }
+            _spectrumData = new float[(int) FftSize];
 
-        private void CaptureDefaultDevice()
-        {
-            _process = Process;
-            var defaultDevice = BassWasapi.BASS_WASAPI_GetDeviceInfos().FirstOrDefault(d => d.IsDefault && !d.IsInput);
-            var devices = BassWasapi.BASS_WASAPI_GetDeviceInfos(); // MUST be compiled as x86 since basswasapi.dll is ancient
-            _defaultAudioDevice = devices.FirstOrDefault(d => d.IsEnabled && d.IsLoopback && d.name == defaultDevice?.name);
-            if (_defaultAudioDevice == null) return;
+            _soundIn = new WasapiLoopbackCapture();
+            _soundIn.Initialize();
+            
+            var soundInSource = new SoundInSource(_soundIn);
+            _spectrumProvider = new SpectrumProvider(soundInSource.WaveFormat.Channels, soundInSource.WaveFormat.SampleRate, FftSize);
 
-            Bass.BASS_SetConfig(BASSConfig.BASS_CONFIG_UPDATETHREADS, false);
-            Bass.BASS_Init(0, 44100, BASSInit.BASS_DEVICE_DEFAULT, IntPtr.Zero);
+            var notificationSource = new SingleBlockNotificationStream(soundInSource.ToSampleSource());
+            notificationSource.SingleBlockRead += (s, a) => _spectrumProvider.Add(a.Left, a.Right);
+            ForceSingleBlockCall(soundInSource, notificationSource);
 
-            var deviceIndex = Array.FindIndex(devices, d => d == _defaultAudioDevice);
-            BassWasapi.BASS_WASAPI_Init(deviceIndex, 0, 0, BASSWASAPIInit.BASS_WASAPI_BUFFER, 1f, 0.05f, _process, IntPtr.Zero);
-            BassWasapi.BASS_WASAPI_Start();
             _updateSpectrumDispatcherTimer.Start();
+
+            _soundIn.Start();
         }
 
-        private static int Process(IntPtr buffer, int length, IntPtr user)
+        internal void Stop()
         {
-            return length;
+            if (_soundIn != null)
+            {
+                _soundIn.Stop();
+                _soundIn.Dispose();
+                _soundIn = null;
+            }
+
+            if (_source != null)
+            {
+                _source.Dispose();
+                _source = null;
+            }
+
+            _updateSpectrumDispatcherTimer.Stop();
+        }
+
+        private void ForceSingleBlockCall(SoundInSource soundInSource, ISampleSource notificationSource)
+        {
+            _source = notificationSource.ToWaveSource(16);
+            var buffer = new byte[_source.WaveFormat.BytesPerSecond / 2];
+            soundInSource.DataAvailable += (s, aEvent) =>
+            {
+                while (_source.Read(buffer, 0, buffer.Length) > 0) { }
+            };
         }
 
         private void UpdateSpectrum(object sender, EventArgs e)
         {
-            var dataSet = BassWasapi.BASS_WASAPI_GetData(_fft, (int)BASSData.BASS_DATA_FFT8192);
-            if (dataSet < -1) return;
+            if (!_spectrumProvider.IsNewDataAvailable) return;
+            _spectrumProvider.GetFftData(_spectrumData);
 
             var bindex = 0; // sorry for this one
             for (var l = 0; l < Bins; l++)
@@ -116,7 +137,7 @@ namespace SpectrumAnalyzer.Models
                 if (binSize > 1023) binSize = 1023;             // max binSize
                 if (binSize <= bindex) binSize = bindex + 1;    // min binSize
                 for (; bindex < binSize; bindex++)              // select peak
-                    if (peak < _fft[1 + bindex]) peak = _fft[1 + bindex];
+                    if (peak < _spectrumData[1 + bindex]) peak = _spectrumData[1 + bindex];
                 var value = Math.Sqrt(peak) * 3 * Normal - 4;
                 if (value > Normal) value = Normal;
                 if (value < 0) value = 0;

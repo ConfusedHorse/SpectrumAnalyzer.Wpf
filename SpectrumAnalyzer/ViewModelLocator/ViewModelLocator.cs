@@ -28,7 +28,5 @@ namespace SpectrumAnalyzer.ViewModelLocator
                     Properties.Settings.Default.Bins,
                     Properties.Settings.Default.Rate,
                     Properties.Settings.Default.Normal));
-
-        
     }
 }
