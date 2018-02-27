@@ -57,7 +57,11 @@ namespace SpectrumAnalyzer.Controls
             if (!(d is AudioLine al)) return;
             var newDataContext = (FrequencyBin) e.NewValue;
 
-            newDataContext.ValueChanged += (sender, args) => { UpdateVisuals(al, newDataContext.Value); };
+            newDataContext.PropertyChanged += (sender, args) =>
+            {
+                if (args.PropertyName != nameof(newDataContext.Value)) return;
+                UpdateVisuals(al, newDataContext.Value);
+            };
         }
 
         public FrequencyBin FrequencyBin

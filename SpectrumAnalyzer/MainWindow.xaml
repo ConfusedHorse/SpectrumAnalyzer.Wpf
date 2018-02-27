@@ -7,6 +7,7 @@
                       xmlns:windows="clr-namespace:BlurryControls.Controls;assembly=BlurryControls"
                       xmlns:system="clr-namespace:System;assembly=mscorlib"
                       xmlns:module="clr-namespace:SpectrumAnalyzer.Singleton"
+                      xmlns:models="clr-namespace:SpectrumAnalyzer.Models"
                       mc:Ignorable="d"
                       Title="{Binding CurrentAudioDevice.FriendlyName}"
                       SizeToContent="WidthAndHeight" Background="Black" 
@@ -23,7 +24,7 @@
     </windows:BlurryWindow.Resources>
 
     <Grid>
-        <StackPanel Orientation="Horizontal">
+        <StackPanel Orientation="Vertical">
             <StackPanel Orientation="Vertical" Margin="25 0">
                 <Grid x:Name="Spectrum" Height="100">
                     <controls:AudioSpectrum PitchColor="{StaticResource PitchColor}"
@@ -65,52 +66,37 @@
                 </Grid>
             </StackPanel>
 
-            <StackPanel Orientation="Vertical" VerticalAlignment="Center">
-                <Rectangle Height="20"
-                           Width="20"
+            <StackPanel Orientation="Vertical" Margin="25 0 25 25">
+                <TextBlock Text="Observers"
                            Margin="5"
-                           ToolTip="High">
-                    <Rectangle.Style>
-                        <Style TargetType="Rectangle">
-                            <Setter Property="Fill" Value="DimGray"/>
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding HighBeat, UpdateSourceTrigger=PropertyChanged}" Value="True">
-                                    <Setter Property="Fill" Value="LightGray"/>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Rectangle.Style>
-                </Rectangle>
-                <Rectangle Height="20"
-                           Width="20"
-                           Margin="5"
-                           ToolTip="Mids">
-                    <Rectangle.Style>
-                        <Style TargetType="Rectangle">
-                            <Setter Property="Fill" Value="DimGray"/>
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding MidsBeat, UpdateSourceTrigger=PropertyChanged}" Value="True">
-                                    <Setter Property="Fill" Value="LightGray"/>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Rectangle.Style>
-                </Rectangle>
-                <Rectangle Height="20"
-                           Width="20"
-                           Margin="5"
-                           ToolTip="Bass">
-                    <Rectangle.Style>
-                        <Style TargetType="Rectangle">
-                            <Setter Property="Fill" Value="DimGray"/>
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding BassBeat, UpdateSourceTrigger=PropertyChanged}" Value="True">
-                                    <Setter Property="Fill" Value="LightGray"/>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Rectangle.Style>
-                </Rectangle>
+                           FontSize="{StaticResource StrongFontSize}"/>
+                <ItemsControl ItemsSource="{Binding FrequencyObservers}"
+                              HorizontalAlignment="Stretch">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="{x:Type models:FrequencyObserver}">
+                            <DockPanel>
+                                <Rectangle Height="20" Width="20"
+                                           Margin="5">
+                                    <Rectangle.Style>
+                                        <Style TargetType="Rectangle">
+                                            <Setter Property="Fill" Value="{StaticResource Foreground}"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding BeatDetected}" Value="True">
+                                                    <Setter Property="Fill" Value="{StaticResource ForegroundPitched}"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Rectangle.Style>
+                                </Rectangle>
+                                <TextBlock Margin="5">
+                                    <Run Text="{Binding Title}"/>
+                                    <Run Text="{Binding MinFrequency, StringFormat='{}&#x09;({0}Hz - '}"/>
+                                    <Run Text="{Binding MaxFrequency, StringFormat='{}{0}Hz)'}"/>
+                                </TextBlock>
+                            </DockPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
             </StackPanel>
             
             <!--<windows:BlurryColorPicker Height="150"

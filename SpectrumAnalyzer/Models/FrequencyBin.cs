@@ -1,12 +1,10 @@
-﻿using System;
-
-namespace SpectrumAnalyzer.Models
+﻿namespace SpectrumAnalyzer.Models
 {
-    public class FrequencyBin
+    public class FrequencyBin : ViewModelBase
     {
         private double _value;
-
-        public event EventHandler<double> ValueChanged;
+        private int _minFrequency;
+        private int _maxFrequency;
 
         public FrequencyBin(int value = 0)
         {
@@ -19,13 +17,28 @@ namespace SpectrumAnalyzer.Models
             set
             {
                 _value = value;
-                RaiseValueChanged(value);
+                RaisePropertyChanged();
             }
         }
 
-        private void RaiseValueChanged(double newValue)
+        public int MinFrequency
         {
-            ValueChanged?.Invoke(this, newValue);
+            get => _minFrequency;
+            set
+            {
+                _minFrequency = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        public int MaxFrequency
+        {
+            get => _maxFrequency;
+            set
+            {
+                _maxFrequency = value;
+                RaisePropertyChanged();
+            }
         }
     }
 }

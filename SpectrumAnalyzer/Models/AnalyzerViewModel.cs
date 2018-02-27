@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Diagnostics;
 using System.Linq;
 using System.Windows.Threading;
 using CSCore;
@@ -15,14 +13,16 @@ using SpectrumAnalyzer.Factories;
 
 namespace SpectrumAnalyzer.Models
 {
-    public class AnalyzerViewModel : INotifyPropertyChanged
+    // most of the following code is based on the https://github.com/filoe/cscore examples
+
+    public class AnalyzerViewModel : ViewModelBase
     {
         /// <summary>
-        /// captures the default devices audio stream, performs an fft and stores the result in <see cref="FrequencyBins"/>
+        ///     captures the default devices audio stream, performs an fft and stores the result in <see cref="FrequencyBins" />
         /// </summary>
-        /// <param name="bins">number of frequency bins in <see cref="FrequencyBins"/></param>
+        /// <param name="bins">number of frequency bins in <see cref="FrequencyBins" /></param>
         /// <param name="rate">number of refreshes per second</param>
-        /// <param name="normal">normalized values in <see cref="FrequencyBins"/></param>
+        /// <param name="normal">normalized values in <see cref="FrequencyBins" /></param>
         public AnalyzerViewModel(int bins = 50, int rate = 50, int normal = 255)
         {
             _updateSpectrumDispatcherTimer.Tick += UpdateSpectrum;
@@ -32,7 +32,7 @@ namespace SpectrumAnalyzer.Models
             _normal = normal;
             DetectBeats = true;
             BeatSensibility = 1.001;
-           
+
             Initialize();
         }
 
@@ -46,39 +46,25 @@ namespace SpectrumAnalyzer.Models
         private const double DbScale = MaxDbValue - MinDbValue;
 
         private readonly DispatcherTimer _updateSpectrumDispatcherTimer = new DispatcherTimer();
-        private int _rate;
-        private int _bins;
         private WasapiLoopbackCapture _soundIn;
         private SpectrumProvider _spectrumProvider;
-        private IWaveSource _source;
         private float[] _spectrumData;
-        private bool _detectBeats;
-
-        // TODO provide public properties
+        private IWaveSource _source;
         private Queue<float[]> _history;
-        private bool _highBeat;
-        private bool _midsBeat;
-        private bool _bassBeat;
-        private const int BassMinFreq = 1;
-        private const int BassMaxFreq = 200;
-        private const int MidsMinFreq = 200;
-        private const int MidsMaxFreq = 1000;
-        private const int HighMinFreq = 1000;
-        private const int HighMaxFreq = 5000;
-        private const double BassThreshhold = 0.3;
-        private const double MidsThreshhold = 0.3;
-        private const double HighThreshhold = 0.3;
-
         private int _minimumFrequencyIndex;
         private int _maximumFrequencyIndex;
-        private int _minFrequency = 20;
-        private int _maxFrequency = 20000;
         private int[] _spectrumIndexMax;
         private int[] _spectrumLogScaleIndexMax;
+
+        private int _rate;
+        private int _bins;
+        private int _normal;
+        private bool _detectBeats;
+        private int _minFrequency = 20;
+        private int _maxFrequency = 5000; // 20000?
         private ScalingStrategy _scalingStrategy = ScalingStrategy.Sqrt;
         private bool _logarithmicX = true;
         private bool _average;
-        private int _normal;
 
         #endregion Fields
 
@@ -207,35 +193,14 @@ namespace SpectrumAnalyzer.Models
 
         #region Beat Detection
 
-        public bool HighBeat
-        {
-            get => _highBeat;
-            set
+        public ObservableCollection<FrequencyObserver> FrequencyObservers { get; } =
+            new ObservableCollection<FrequencyObserver>
             {
-                _highBeat = value;
-                RaisePropertyChanged(nameof(HighBeat));
-            }
-        }
-
-        public bool MidsBeat
-        {
-            get => _midsBeat;
-            set
-            {
-                _midsBeat = value;
-                RaisePropertyChanged(nameof(MidsBeat));
-            }
-        }
-
-        public bool BassBeat
-        {
-            get => _bassBeat;
-            set
-            {
-                _bassBeat = value;
-                RaisePropertyChanged(nameof(BassBeat));
-            }
-        }
+                // TODO load from file + editable
+                new FrequencyObserver {Title = "Treble", MinFrequency = 5200, MaxFrequency = 20000},
+                new FrequencyObserver {Title = "Mid", MinFrequency = 400, MaxFrequency = 5200},
+                new FrequencyObserver {Title = "Bass", MinFrequency = 20, MaxFrequency = 400}
+            };
 
         #endregion Beat Detection
 
@@ -280,11 +245,12 @@ namespace SpectrumAnalyzer.Models
             _soundIn = new WasapiLoopbackCapture();
             _soundIn.Initialize();
             CurrentAudioDevice = _soundIn.Device;
-            AudioEndpointVolume = AudioEndpointVolume.FromDevice(CurrentAudioDevice);
-            
+            // AudioEndpointVolume = AudioEndpointVolume.FromDevice(CurrentAudioDevice);
+
             var soundInSource = new SoundInSource(_soundIn);
-            _spectrumProvider = new SpectrumProvider(soundInSource.WaveFormat.Channels, soundInSource.WaveFormat.SampleRate, FftSize);
-            UpdateFrequencyMapping();
+            _spectrumProvider = new SpectrumProvider(soundInSource.WaveFormat.Channels,
+                soundInSource.WaveFormat.SampleRate, FftSize);
+            UpdateFrequencyMapping(); // TODO apply min/max to bin
 
             var notificationSource = new SingleBlockNotificationStream(soundInSource.ToSampleSource());
             notificationSource.SingleBlockRead += (s, a) => _spectrumProvider.Add(a.Left, a.Right);
@@ -301,7 +267,7 @@ namespace SpectrumAnalyzer.Models
             var buffer = new byte[_source.WaveFormat.BytesPerSecond / 2];
             soundInSource.DataAvailable += (s, aEvent) =>
             {
-                while (_source.Read(buffer, 0, buffer.Length) > 0) { }
+                while (_source.Read(buffer, 0, buffer.Length) > 0) {}
             };
         }
 
@@ -313,7 +279,7 @@ namespace SpectrumAnalyzer.Models
         {
             _minimumFrequencyIndex = Math.Min(_spectrumProvider.GetFftBandIndex(_minFrequency), SpectrumDataSize);
             _maximumFrequencyIndex = Math.Min(_spectrumProvider.GetFftBandIndex(_maxFrequency) + 1, SpectrumDataSize);
-            
+
             var indexCount = _maximumFrequencyIndex - _minimumFrequencyIndex;
             var linearIndexBucketSize = Math.Round(indexCount / (double) _bins, 3);
 
@@ -324,18 +290,16 @@ namespace SpectrumAnalyzer.Models
             for (var i = 1; i < _bins; i++)
             {
                 var logIndex =
-                    (int)((maxLog - Math.Log(_bins + 1 - i, _bins + 1)) * indexCount) +
+                    (int) ((maxLog - Math.Log(_bins + 1 - i, _bins + 1)) * indexCount) +
                     _minimumFrequencyIndex;
 
-                _spectrumIndexMax[i - 1] = _minimumFrequencyIndex + (int)(i * linearIndexBucketSize);
+                _spectrumIndexMax[i - 1] = _minimumFrequencyIndex + (int) (i * linearIndexBucketSize);
                 _spectrumLogScaleIndexMax[i - 1] = logIndex;
             }
 
             if (_bins > 0)
-            {
                 _spectrumIndexMax[_spectrumIndexMax.Length - 1] =
                     _spectrumLogScaleIndexMax[_spectrumLogScaleIndexMax.Length - 1] = _maximumFrequencyIndex;
-            }
         }
 
         private void UpdateSpectrum(object sender, EventArgs e)
@@ -417,7 +381,7 @@ namespace SpectrumAnalyzer.Models
             var minFreqIndex = Math.Min(_spectrumProvider.GetFftBandIndex(from), SpectrumDataSize);
             var maxFreqIndex = Math.Min(_spectrumProvider.GetFftBandIndex(to) + 1, SpectrumDataSize);
             if (minFreqIndex > maxFreqIndex) return avgFromTo;
-            
+
             for (var frequencyIndex = minFreqIndex; frequencyIndex < maxFreqIndex; frequencyIndex++)
                 avgFromTo += spectrum[frequencyIndex];
             return avgFromTo;
@@ -426,32 +390,16 @@ namespace SpectrumAnalyzer.Models
         private void DetectBeat(object sender, EventArgs e)
         {
             var historyAverage = CalculateAverages();
-
-            var bassAvg = GetFrequencyPool(historyAverage, BassMinFreq, BassMaxFreq);
-            var midsAvg = GetFrequencyPool(historyAverage, MidsMinFreq, MidsMaxFreq);
-            var highAvg = GetFrequencyPool(historyAverage, HighMinFreq, HighMaxFreq);
-
-            var bassCur = GetFrequencyPool(_spectrumData, BassMinFreq, BassMaxFreq);
-            var midsCur = GetFrequencyPool(_spectrumData, MidsMinFreq, MidsMaxFreq);
-            var highCur = GetFrequencyPool(_spectrumData, HighMinFreq, HighMaxFreq);
-
-            BassBeat = bassCur > BassThreshhold && bassCur > bassAvg;
-            MidsBeat = midsCur > MidsThreshhold && midsCur > midsAvg;
-            HighBeat = highCur > HighThreshhold && highCur > highAvg;
-
+            foreach (var fo in FrequencyObservers)
+            {
+                var cur = GetFrequencyPool(_spectrumData, fo.MinFrequency, fo.MaxFrequency);
+                if (_history.Count < _rate) continue;
+                var avg = GetFrequencyPool(historyAverage, fo.MinFrequency, fo.MaxFrequency);
+                fo.BeatDetected = cur > avg && cur > fo.Threshhold;
+            }
             UpdateHistory();
         }
 
         #endregion
-
-        #region Event Handlers
-
-        public event PropertyChangedEventHandler PropertyChanged;
-        private void RaisePropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        #endregion Event Handlers
     }
 }
