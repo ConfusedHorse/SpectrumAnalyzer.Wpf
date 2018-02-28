@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
+using System.Windows.Media;
 using System.Windows.Threading;
 using CSCore;
 using CSCore.CoreAudioAPI;
@@ -13,8 +15,6 @@ using SpectrumAnalyzer.Factories;
 
 namespace SpectrumAnalyzer.Models
 {
-    // most of the following code is based on the https://github.com/filoe/cscore examples
-
     public class AnalyzerViewModel : ViewModelBase
     {
         /// <summary>
@@ -31,7 +31,6 @@ namespace SpectrumAnalyzer.Models
             _rate = rate;
             _normal = normal;
             DetectBeats = true;
-            BeatSensibility = 1.001;
 
             Initialize();
         }
@@ -198,8 +197,8 @@ namespace SpectrumAnalyzer.Models
             {
                 // TODO load from file + editable
                 new FrequencyObserver {Title = "Treble", MinFrequency = 5200, MaxFrequency = 20000},
-                new FrequencyObserver {Title = "Mid", MinFrequency = 400, MaxFrequency = 5200},
-                new FrequencyObserver {Title = "Bass", MinFrequency = 20, MaxFrequency = 400}
+                new FrequencyObserver {Title = "Mid", MinFrequency = 400, MaxFrequency = 5200, PitchColor = Brushes.Black},
+                new FrequencyObserver {Title = "Bass", MinFrequency = 20, MaxFrequency = 400, PitchColor = Brushes.DarkRed}
             };
 
         #endregion Beat Detection
@@ -261,6 +260,7 @@ namespace SpectrumAnalyzer.Models
             _soundIn.Start();
         }
 
+        // based on the https://github.com/filoe/cscore visualization example
         private void ForceSingleBlockCall(SoundInSource soundInSource, ISampleSource notificationSource)
         {
             _source = notificationSource.ToWaveSource(16);
@@ -275,6 +275,7 @@ namespace SpectrumAnalyzer.Models
 
         #region Frequencies
 
+        // based on the https://github.com/filoe/cscore visualization example
         private void UpdateFrequencyMapping()
         {
             _minimumFrequencyIndex = Math.Min(_spectrumProvider.GetFftBandIndex(_minFrequency), SpectrumDataSize);
@@ -302,6 +303,7 @@ namespace SpectrumAnalyzer.Models
                     _spectrumLogScaleIndexMax[_spectrumLogScaleIndexMax.Length - 1] = _maximumFrequencyIndex;
         }
 
+        // based on the https://github.com/filoe/cscore visualization example
         private void UpdateSpectrum(object sender, EventArgs e)
         {
             if (!_spectrumProvider.IsNewDataAvailable) return;
@@ -384,7 +386,7 @@ namespace SpectrumAnalyzer.Models
 
             for (var frequencyIndex = minFreqIndex; frequencyIndex < maxFreqIndex; frequencyIndex++)
                 avgFromTo += spectrum[frequencyIndex];
-            return avgFromTo;
+            return avgFromTo / (maxFreqIndex - minFreqIndex);
         }
 
         private void DetectBeat(object sender, EventArgs e)
@@ -394,8 +396,9 @@ namespace SpectrumAnalyzer.Models
             {
                 var cur = GetFrequencyPool(_spectrumData, fo.MinFrequency, fo.MaxFrequency);
                 if (_history.Count < _rate) continue;
+                fo.AdjustAverage(cur);
                 var avg = GetFrequencyPool(historyAverage, fo.MinFrequency, fo.MaxFrequency);
-                fo.BeatDetected = cur > avg && cur > fo.Threshhold;
+                fo.BeatDetected = cur > fo.AverageEnergyThreshold && cur > avg * fo.AverageFactor;
             }
             UpdateHistory();
         }

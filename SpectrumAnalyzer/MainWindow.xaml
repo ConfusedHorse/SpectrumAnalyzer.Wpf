@@ -79,10 +79,10 @@
                                            Margin="5">
                                     <Rectangle.Style>
                                         <Style TargetType="Rectangle">
-                                            <Setter Property="Fill" Value="{StaticResource Foreground}"/>
+                                            <Setter Property="Fill" Value="{Binding IdleColor}"/>
                                             <Style.Triggers>
                                                 <DataTrigger Binding="{Binding BeatDetected}" Value="True">
-                                                    <Setter Property="Fill" Value="{StaticResource ForegroundPitched}"/>
+                                                    <Setter Property="Fill" Value="{Binding PitchColor}"/>
                                                 </DataTrigger>
                                             </Style.Triggers>
                                         </Style>
@@ -90,8 +90,9 @@
                                 </Rectangle>
                                 <TextBlock Margin="5">
                                     <Run Text="{Binding Title}"/>
-                                    <Run Text="{Binding MinFrequency, StringFormat='{}&#x09;({0}Hz - '}"/>
-                                    <Run Text="{Binding MaxFrequency, StringFormat='{}{0}Hz)'}"/>
+                                    <Run Text="{Binding MinFrequency, StringFormat='{}&#x09;({0:00000}Hz - '}"/>
+                                    <Run Text="{Binding MaxFrequency, StringFormat='{}{0:00000}Hz)'}"/>
+                                    <Run Text="{Binding AverageEnergy, StringFormat='{}&#x09;avg: {0:F20}'}"/>
                                 </TextBlock>
                             </DockPanel>
                         </DataTemplate>
