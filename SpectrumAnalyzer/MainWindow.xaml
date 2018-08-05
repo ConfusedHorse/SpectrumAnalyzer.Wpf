@@ -9,8 +9,7 @@
                       xmlns:module="clr-namespace:SpectrumAnalyzer.Singleton"
                       xmlns:models="clr-namespace:SpectrumAnalyzer.Models"
                       mc:Ignorable="d"
-                      Title="{Binding CurrentAudioDevice.FriendlyName}"
-                      SizeToContent="WidthAndHeight" Background="Black" 
+                      SizeToContent="WidthAndHeight" Background="Black" Strength="0.75" 
                       DataContext="{Binding AnalyzerViewModel, Source={x:Static module:ViewModelLocator.Instance}}">
     <windows:BlurryWindow.Resources>
         <system:Double x:Key="ActualRaising">25.5</system:Double>
@@ -27,6 +26,11 @@
         <StackPanel Orientation="Vertical">
             <StackPanel Orientation="Vertical" Margin="25 0">
                 <Grid x:Name="Spectrum" Height="100">
+                    <TextBlock Text="{Binding CurrentAudioDevice.FriendlyName}"
+                               Foreground="{StaticResource ForegroundPitched}"
+                               FontFamily="Segoe UI Light" FontSize="50"
+                               Opacity="{StaticResource ShadowOpacity}"
+                               HorizontalAlignment="Right"/>
                     <controls:AudioSpectrum PitchColor="{StaticResource PitchColor}"
                                             ForegroundPitched="{StaticResource ForegroundPitched}"
                                             Foreground="{StaticResource Foreground}"
@@ -90,9 +94,9 @@
                                 </Rectangle>
                                 <TextBlock Margin="5">
                                     <Run Text="{Binding Title}"/>
-                                    <Run Text="{Binding MinFrequency, StringFormat='{}&#x09;({0:00000}Hz - '}"/>
+                                    <Run Text="{Binding MinFrequency, StringFormat='{}&#x09;({0:00000}Hz -'}"/>
                                     <Run Text="{Binding MaxFrequency, StringFormat='{}{0:00000}Hz)'}"/>
-                                    <Run Text="{Binding AverageEnergy, StringFormat='{}&#x09;avg: {0:F20}'}"/>
+                                    <Run Text="{Binding AverageEnergy, StringFormat='{}&#x09;avg: {0:F10}'}"/>
                                 </TextBlock>
                             </DockPanel>
                         </DataTemplate>

@@ -17,11 +17,10 @@ namespace SpectrumAnalyzer.Controls
 
         private void AdjustLines(object sender, SizeChangedEventArgs _)
         {
-            var items = Spectrum.Items.OfType<AudioLine>();
+            var items = Spectrum.Items.OfType<AudioLine>().ToArray();
             var margin = items.FirstOrDefault()?.Margin;
             var offset = margin?.Top + margin?.Bottom ?? 0;
-            foreach (var spectrumItem in Spectrum.Items.OfType<AudioLine>())
-                spectrumItem.Height = ActualHeight - offset;
+            foreach (var spectrumItem in items) spectrumItem.Height = ActualHeight - offset;
         }
 
         #region Dependency Properties

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Windows;
 using System.Windows.Media;
 using System.Windows.Threading;
 using CSCore;
@@ -25,8 +26,6 @@ namespace SpectrumAnalyzer.Models
         /// <param name="normal">normalized values in <see cref="FrequencyBins" /></param>
         public AnalyzerViewModel(int bins = 50, int rate = 50, int normal = 255)
         {
-            _updateSpectrumDispatcherTimer.Tick += UpdateSpectrum;
-
             _bins = bins;
             _rate = rate;
             _normal = normal;
@@ -45,6 +44,7 @@ namespace SpectrumAnalyzer.Models
         private const double DbScale = MaxDbValue - MinDbValue;
 
         private readonly DispatcherTimer _updateSpectrumDispatcherTimer = new DispatcherTimer();
+        private MMDeviceEnumerator _deviceEnumerator;
         private WasapiLoopbackCapture _soundIn;
         private SpectrumProvider _spectrumProvider;
         private float[] _spectrumData;
@@ -64,6 +64,7 @@ namespace SpectrumAnalyzer.Models
         private ScalingStrategy _scalingStrategy = ScalingStrategy.Sqrt;
         private bool _logarithmicX = true;
         private bool _average;
+        private MMDevice _currentAudioDevice;
 
         #endregion Fields
 
@@ -80,7 +81,7 @@ namespace SpectrumAnalyzer.Models
             {
                 _bins = value;
                 FrequencyBins = new ObservableCollection<FrequencyBin>(AnalyzerFactory.CreateMany(Bins));
-                RaisePropertyChanged(nameof(Bins));
+                RaisePropertyChanged();
             }
         }
 
@@ -91,7 +92,7 @@ namespace SpectrumAnalyzer.Models
             {
                 _rate = value;
                 _updateSpectrumDispatcherTimer.Interval = TimeSpan.FromMilliseconds(1000.0 / value);
-                RaisePropertyChanged(nameof(Rate));
+                RaisePropertyChanged();
             }
         }
 
@@ -101,7 +102,7 @@ namespace SpectrumAnalyzer.Models
             set
             {
                 _normal = value;
-                RaisePropertyChanged(nameof(Normal));
+                RaisePropertyChanged();
             }
         }
 
@@ -111,7 +112,7 @@ namespace SpectrumAnalyzer.Models
             set
             {
                 _minFrequency = value;
-                RaisePropertyChanged(nameof(MinFrequency));
+                RaisePropertyChanged();
             }
         }
 
@@ -121,7 +122,7 @@ namespace SpectrumAnalyzer.Models
             set
             {
                 _maxFrequency = value;
-                RaisePropertyChanged(nameof(MaxFrequency));
+                RaisePropertyChanged();
             }
         }
 
@@ -131,7 +132,7 @@ namespace SpectrumAnalyzer.Models
             set
             {
                 _scalingStrategy = value;
-                RaisePropertyChanged(nameof(ScalingStrategy));
+                RaisePropertyChanged();
             }
         }
 
@@ -141,7 +142,7 @@ namespace SpectrumAnalyzer.Models
             set
             {
                 _logarithmicX = value;
-                RaisePropertyChanged(nameof(LogarithmicX));
+                RaisePropertyChanged();
             }
         }
 
@@ -151,7 +152,7 @@ namespace SpectrumAnalyzer.Models
             set
             {
                 _average = value;
-                RaisePropertyChanged(nameof(Average));
+                RaisePropertyChanged();
             }
         }
 
@@ -166,9 +167,9 @@ namespace SpectrumAnalyzer.Models
             {
                 _detectBeats = value;
                 if (value)
-                    _updateSpectrumDispatcherTimer.Tick += DetectBeat;
+                    _updateSpectrumDispatcherTimer.Tick += DetectObserverBand;
                 else
-                    _updateSpectrumDispatcherTimer.Tick -= DetectBeat;
+                    _updateSpectrumDispatcherTimer.Tick -= DetectObserverBand;
             }
         }
 
@@ -182,9 +183,17 @@ namespace SpectrumAnalyzer.Models
 
         #region Frequency Analysis
 
-        public ObservableCollection<FrequencyBin> FrequencyBins { get; private set; }
+        public ObservableCollection<FrequencyBin> FrequencyBins { get; private set; } = new ObservableCollection<FrequencyBin>();
 
-        public MMDevice CurrentAudioDevice { get; set; }
+        public MMDevice CurrentAudioDevice
+        {
+            get => _currentAudioDevice;
+            set
+            {
+                _currentAudioDevice = value;
+                Application.Current.Dispatcher.Invoke(() => RaisePropertyChanged());
+            }
+        }
 
         public AudioEndpointVolume AudioEndpointVolume { get; set; }
 
@@ -197,8 +206,9 @@ namespace SpectrumAnalyzer.Models
             {
                 // TODO load from file + editable
                 new FrequencyObserver {Title = "Treble", MinFrequency = 5200, MaxFrequency = 20000},
-                new FrequencyObserver {Title = "Mid", MinFrequency = 400, MaxFrequency = 5200, PitchColor = Brushes.Black},
-                new FrequencyObserver {Title = "Bass", MinFrequency = 20, MaxFrequency = 400, PitchColor = Brushes.DarkRed}
+                new FrequencyObserver {Title = "Mid", MinFrequency = 400, MaxFrequency = 5200},
+                new FrequencyObserver {Title = "Bass", MinFrequency = 20, MaxFrequency = 400},
+                new FrequencyObserver {Title = "Kick", MinFrequency = 108-30, MaxFrequency = 108+30, PitchColor = Brushes.White}
             };
 
         #endregion Beat Detection
@@ -215,36 +225,38 @@ namespace SpectrumAnalyzer.Models
 
         #region Private Methods
 
-        internal void Stop()
-        {
-            if (_soundIn != null)
-            {
-                _soundIn.Stop();
-                _soundIn.Dispose();
-                _soundIn = null;
-            }
-
-            if (_source != null)
-            {
-                _source.Dispose();
-                _source = null;
-            }
-
-            _updateSpectrumDispatcherTimer.Stop();
-        }
-
         private void Initialize()
         {
             Stop();
+            InitializeCapture();
+            _deviceEnumerator = new MMDeviceEnumerator();
 
-            FrequencyBins = new ObservableCollection<FrequencyBin>(AnalyzerFactory.CreateMany(Bins));
+            _deviceEnumerator.DefaultDeviceChanged += OnDefaultDeviceChanged;
+            _updateSpectrumDispatcherTimer.Tick += UpdateSpectrum;
+        }
+
+        private void OnDefaultDeviceChanged(object sender, DefaultDeviceChangedEventArgs e)
+        {
+            if (e.Role == Role.Multimedia) InitializeCapture();
+        }
+
+        private void InitializeCapture()
+        {
+            Stop();
+
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                FrequencyBins.Clear();
+                foreach (var frequencyBin in AnalyzerFactory.CreateMany(Bins)) FrequencyBins.Add(frequencyBin);
+            });
+
             _spectrumData = new float[(int) FftSize];
             _history = new Queue<float[]>(_rate);
 
             _soundIn = new WasapiLoopbackCapture();
             _soundIn.Initialize();
             CurrentAudioDevice = _soundIn.Device;
-            // AudioEndpointVolume = AudioEndpointVolume.FromDevice(CurrentAudioDevice);
+            //AudioEndpointVolume = AudioEndpointVolume.FromDevice(CurrentAudioDevice);
 
             var soundInSource = new SoundInSource(_soundIn);
             _spectrumProvider = new SpectrumProvider(soundInSource.WaveFormat.Channels,
@@ -256,8 +268,25 @@ namespace SpectrumAnalyzer.Models
             ForceSingleBlockCall(soundInSource, notificationSource);
 
             _updateSpectrumDispatcherTimer.Start();
-
             _soundIn.Start();
+        }
+
+        internal void Stop()
+        {
+            _updateSpectrumDispatcherTimer.Stop();
+
+            if (_soundIn != null)
+            {
+                _soundIn.Stop();
+                //_soundIn.Dispose();
+                _soundIn = null;
+            }
+
+            if (_source != null)
+            {
+                _source.Dispose();
+                _source = null;
+            }
         }
 
         // based on the https://github.com/filoe/cscore visualization example
@@ -358,7 +387,7 @@ namespace SpectrumAnalyzer.Models
 
         #endregion
 
-        #region Beats
+        #region Observers
 
         private void UpdateHistory()
         {
@@ -389,7 +418,7 @@ namespace SpectrumAnalyzer.Models
             return avgFromTo / (maxFreqIndex - minFreqIndex);
         }
 
-        private void DetectBeat(object sender, EventArgs e)
+        private void DetectObserverBand(object sender, EventArgs e)
         {
             var historyAverage = CalculateAverages();
             foreach (var fo in FrequencyObservers)

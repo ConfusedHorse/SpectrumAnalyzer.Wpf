@@ -9,6 +9,7 @@ namespace SpectrumAnalyzer.Factories
         {
             return new FrequencyBin(value);
         }
+
         public static IEnumerable<FrequencyBin> CreateMany(int count, int value = 0)
         {
             for (var i = 0; i < count; i++) yield return Create(value);
