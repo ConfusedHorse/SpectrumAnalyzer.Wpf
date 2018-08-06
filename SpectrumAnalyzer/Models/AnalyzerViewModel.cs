@@ -233,6 +233,8 @@ namespace SpectrumAnalyzer.Models
 
             _deviceEnumerator.DefaultDeviceChanged += OnDefaultDeviceChanged;
             _updateSpectrumDispatcherTimer.Tick += UpdateSpectrum;
+
+            _updateSpectrumDispatcherTimer.Start();
         }
 
         private void OnDefaultDeviceChanged(object sender, DefaultDeviceChangedEventArgs e)
@@ -267,13 +269,12 @@ namespace SpectrumAnalyzer.Models
             notificationSource.SingleBlockRead += (s, a) => _spectrumProvider.Add(a.Left, a.Right);
             ForceSingleBlockCall(soundInSource, notificationSource);
 
-            _updateSpectrumDispatcherTimer.Start();
             _soundIn.Start();
         }
 
         internal void Stop()
         {
-            _updateSpectrumDispatcherTimer.Stop();
+            //_updateSpectrumDispatcherTimer.Stop();
 
             if (_soundIn != null)
             {
@@ -335,7 +336,12 @@ namespace SpectrumAnalyzer.Models
         // based on the https://github.com/filoe/cscore visualization example
         private void UpdateSpectrum(object sender, EventArgs e)
         {
-            if (!_spectrumProvider.IsNewDataAvailable) return;
+            if (!_spectrumProvider.IsNewDataAvailable)
+            {
+                foreach (var frequencyBin in FrequencyBins) frequencyBin.Value = 0;
+                return;
+            }
+
             _spectrumProvider.GetFftData(_spectrumData);
 
             double value0 = 0, value = 0;

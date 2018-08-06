@@ -70,42 +70,46 @@
                 </Grid>
             </StackPanel>
 
-            <StackPanel Orientation="Vertical" Margin="25 0 25 25">
-                <TextBlock Text="Observers"
-                           Margin="5"
-                           FontSize="{StaticResource StrongFontSize}"/>
-                <ItemsControl ItemsSource="{Binding FrequencyObservers}"
-                              HorizontalAlignment="Stretch">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate DataType="{x:Type models:FrequencyObserver}">
-                            <DockPanel>
-                                <Rectangle Height="20" Width="20"
-                                           Margin="5">
-                                    <Rectangle.Style>
-                                        <Style TargetType="Rectangle">
-                                            <Setter Property="Fill" Value="{Binding IdleColor}"/>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding BeatDetected}" Value="True">
-                                                    <Setter Property="Fill" Value="{Binding PitchColor}"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Rectangle.Style>
-                                </Rectangle>
-                                <TextBlock Margin="5">
-                                    <Run Text="{Binding Title}"/>
-                                    <Run Text="{Binding MinFrequency, StringFormat='{}&#x09;({0:00000}Hz -'}"/>
-                                    <Run Text="{Binding MaxFrequency, StringFormat='{}{0:00000}Hz)'}"/>
-                                    <Run Text="{Binding AverageEnergy, StringFormat='{}&#x09;avg: {0:F10}'}"/>
-                                </TextBlock>
-                            </DockPanel>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </StackPanel>
-            
-            <!--<windows:BlurryColorPicker Height="150"
-                                       ColorChanged="BlurryColorPicker_OnColorChanged"/>-->
+            <DockPanel Margin="25 0 25 25">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="Observers"
+                               Margin="5"
+                               FontSize="{StaticResource StrongFontSize}"/>
+                    <ItemsControl ItemsSource="{Binding FrequencyObservers}"
+                                  HorizontalAlignment="Stretch">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type models:FrequencyObserver}">
+                                <DockPanel>
+                                    <Rectangle Height="20" Width="20"
+                                               Margin="5">
+                                        <Rectangle.Style>
+                                            <Style TargetType="Rectangle">
+                                                <Setter Property="Fill" Value="{Binding IdleColor}"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding BeatDetected}" Value="True">
+                                                        <Setter Property="Fill" Value="{Binding PitchColor}"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Rectangle.Style>
+                                    </Rectangle>
+                                    <TextBlock Margin="5">
+                                        <Run Text="{Binding Title}"/>
+                                        <Run Text="{Binding MinFrequency, StringFormat='{}&#x09;({0:00000}Hz -'}"/>
+                                        <Run Text="{Binding MaxFrequency, StringFormat='{}{0:00000}Hz)'}"/>
+                                        <Run Text="{Binding AverageEnergy, StringFormat='{}&#x09;avg: {0:F10}'}"/>
+                                    </TextBlock>
+                                </DockPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+
+                <windows:BlurryColorPicker Height="150"
+                                           Width="150"
+                                           HorizontalAlignment="Right"
+                                           ColorChanged="BlurryColorPicker_OnColorChanged"/>
+            </DockPanel>
         </StackPanel>
     </Grid>
 </windows:BlurryWindow>
