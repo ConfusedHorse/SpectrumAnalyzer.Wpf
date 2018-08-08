@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Linq;
+using System.Timers;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Threading;
@@ -26,9 +26,9 @@ namespace SpectrumAnalyzer.Models
         /// <param name="normal">normalized values in <see cref="FrequencyBins" /></param>
         public AnalyzerViewModel(int bins = 50, int rate = 50, int normal = 255)
         {
-            _bins = bins;
-            _rate = rate;
-            _normal = normal;
+            Bins = bins;
+            Rate = rate;
+            Normal = normal;
             DetectBeats = true;
 
             Initialize();
@@ -43,7 +43,7 @@ namespace SpectrumAnalyzer.Models
         private const double MaxDbValue = 0;
         private const double DbScale = MaxDbValue - MinDbValue;
 
-        private readonly DispatcherTimer _updateSpectrumDispatcherTimer = new DispatcherTimer();
+        private readonly Timer _updateSpectrumTimer = new Timer();
         private MMDeviceEnumerator _deviceEnumerator;
         private WasapiLoopbackCapture _soundIn;
         private SpectrumProvider _spectrumProvider;
@@ -91,7 +91,7 @@ namespace SpectrumAnalyzer.Models
             set
             {
                 _rate = value;
-                _updateSpectrumDispatcherTimer.Interval = TimeSpan.FromMilliseconds(1000.0 / value);
+                _updateSpectrumTimer.Interval = 1000.0 / value;
                 RaisePropertyChanged();
             }
         }
@@ -167,9 +167,9 @@ namespace SpectrumAnalyzer.Models
             {
                 _detectBeats = value;
                 if (value)
-                    _updateSpectrumDispatcherTimer.Tick += DetectObserverBand;
+                    _updateSpectrumTimer.Elapsed += DetectObserverBand;
                 else
-                    _updateSpectrumDispatcherTimer.Tick -= DetectObserverBand;
+                    _updateSpectrumTimer.Elapsed -= DetectObserverBand;
             }
         }
 
@@ -191,7 +191,7 @@ namespace SpectrumAnalyzer.Models
             set
             {
                 _currentAudioDevice = value;
-                Application.Current.Dispatcher.Invoke(() => RaisePropertyChanged());
+                RaisePropertyChanged();
             }
         }
 
@@ -232,9 +232,9 @@ namespace SpectrumAnalyzer.Models
             _deviceEnumerator = new MMDeviceEnumerator();
 
             _deviceEnumerator.DefaultDeviceChanged += OnDefaultDeviceChanged;
-            _updateSpectrumDispatcherTimer.Tick += UpdateSpectrum;
+            _updateSpectrumTimer.Elapsed += UpdateSpectrum;
 
-            _updateSpectrumDispatcherTimer.Start();
+            _updateSpectrumTimer.Start();
         }
 
         private void OnDefaultDeviceChanged(object sender, DefaultDeviceChangedEventArgs e)
@@ -257,7 +257,10 @@ namespace SpectrumAnalyzer.Models
 
             _soundIn = new WasapiLoopbackCapture();
             _soundIn.Initialize();
-            CurrentAudioDevice = _soundIn.Device;
+            Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+            {
+                CurrentAudioDevice = _soundIn.Device;
+            }));
             //AudioEndpointVolume = AudioEndpointVolume.FromDevice(CurrentAudioDevice);
 
             var soundInSource = new SoundInSource(_soundIn);
@@ -274,7 +277,7 @@ namespace SpectrumAnalyzer.Models
 
         internal void Stop()
         {
-            //_updateSpectrumDispatcherTimer.Stop();
+            //_updateSpectrumTimer.Stop();
 
             if (_soundIn != null)
             {
@@ -338,7 +341,10 @@ namespace SpectrumAnalyzer.Models
         {
             if (!_spectrumProvider.IsNewDataAvailable)
             {
-                foreach (var frequencyBin in FrequencyBins) frequencyBin.Value = 0;
+                Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+                {
+                    foreach (var frequencyBin in FrequencyBins) frequencyBin.Value = 0;
+                }));
                 return;
             }
 
@@ -348,6 +354,8 @@ namespace SpectrumAnalyzer.Models
             double lastValue = 0;
             double actualMaxValue = _normal;
             var spectrumPointIndex = 0;
+
+            var frequencyBins = new double[Bins];
 
             for (var i = _minimumFrequencyIndex; i <= _maximumFrequencyIndex; i++)
             {
@@ -381,14 +389,19 @@ namespace SpectrumAnalyzer.Models
                     if (_average && spectrumPointIndex > 0)
                         value = (lastValue + value) / 2.0;
 
-                    FrequencyBins[spectrumPointIndex].Value = value;
-
+                    frequencyBins[spectrumPointIndex] = value;
                     lastValue = value;
                     value = 0.0;
                     spectrumPointIndex++;
                     recalc = false;
                 }
             }
+
+            Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+            {
+                var index = 0;
+                foreach (var frequencyBin in FrequencyBins) frequencyBin.Value = frequencyBins[index++];
+            }));
         }
 
         #endregion
@@ -431,9 +444,13 @@ namespace SpectrumAnalyzer.Models
             {
                 var cur = GetFrequencyPool(_spectrumData, fo.MinFrequency, fo.MaxFrequency);
                 if (_history.Count < _rate) continue;
-                fo.AdjustAverage(cur);
-                var avg = GetFrequencyPool(historyAverage, fo.MinFrequency, fo.MaxFrequency);
-                fo.BeatDetected = cur > fo.AverageEnergyThreshold && cur > avg * fo.AverageFactor;
+
+                Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+                {
+                    fo.AdjustAverage(cur);
+                    var avg = GetFrequencyPool(historyAverage, fo.MinFrequency, fo.MaxFrequency);
+                    fo.BeatDetected = cur > fo.AverageEnergyThreshold && cur > avg * fo.AverageFactor;
+                }));
             }
             UpdateHistory();
         }
