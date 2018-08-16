@@ -356,7 +356,7 @@ namespace SpectrumAnalyzer.Models
         {
             if (!_spectrumProvider.IsNewDataAvailable)
             {
-                Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+                Application.Current?.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
                 {
                     foreach (var frequencyBin in FrequencyBins) frequencyBin.Value = 0;
                 }));
@@ -425,7 +425,7 @@ namespace SpectrumAnalyzer.Models
 
         private void UpdateHistory()
         {
-            if (_history.Count == _rate) _history.Dequeue();
+            if (_history.Count >= _rate) _history.Dequeue();
             _history.Enqueue(_spectrumData.ToArray());
         }
 
@@ -460,7 +460,7 @@ namespace SpectrumAnalyzer.Models
                 var cur = GetFrequencyPool(_spectrumData, fo.MinFrequency, fo.MaxFrequency);
                 if (_history.Count < _rate) continue;
 
-                Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+                Application.Current?.Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
                 {
                     fo.AdjustAverage(cur);
                     var avg = GetFrequencyPool(historyAverage, fo.MinFrequency, fo.MaxFrequency);
