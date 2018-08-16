@@ -56,6 +56,7 @@ namespace SpectrumAnalyzer.Controls
         {
             if (!(d is AudioLine al)) return;
             var newDataContext = (FrequencyBin) e.NewValue;
+            al.ToolTip = newDataContext.ToString();
 
             newDataContext.PropertyChanged += (sender, args) =>
             {

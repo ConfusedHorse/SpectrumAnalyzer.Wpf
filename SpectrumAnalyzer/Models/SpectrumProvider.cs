@@ -4,7 +4,6 @@ using CSCore.DSP;
 
 namespace SpectrumAnalyzer.Models
 {
-    // this code is taken from the CSCore visualization example
     public class SpectrumProvider : FftProvider
     {
         private readonly int _sampleRate;
@@ -24,6 +23,14 @@ namespace SpectrumAnalyzer.Models
             var f = _sampleRate / 2.0;
             // ReSharper disable once PossibleLossOfFraction
             return (int)(frequency / f * (fftSize / 2));
+        }
+
+        public int GetFrequency(int fftBandIndex)
+        {
+            var fftSize = (int)FftSize;
+            var f = _sampleRate / 2.0;
+            // ReSharper disable once PossibleLossOfFraction
+            return (int)(fftBandIndex * f / (fftSize / 2));
         }
 
         public bool GetFftData(float[] fftResultBuffer, object context)

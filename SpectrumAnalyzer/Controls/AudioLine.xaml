@@ -6,7 +6,8 @@
              mc:Ignorable="d" 
              d:DesignHeight="100"
              Width="5" Margin="3"
-             Background="Transparent">
+             Background="Transparent"
+             ToolTipService.InitialShowDelay="0">
     <Rectangle x:Name="AudioLineRectangle"
                VerticalAlignment="Bottom"/>
 </UserControl>

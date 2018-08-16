@@ -1,7 +1,9 @@
-﻿using System.Windows.Media;
+﻿using System.Diagnostics;
+using System.Windows.Media;
 
 namespace SpectrumAnalyzer.Models
 {
+    [DebuggerDisplay("{MinFrequency} - {MaxFrequency}Hz")]
     public class FrequencyBin : ViewModelBase
     {
         #region Fields
@@ -72,5 +74,11 @@ namespace SpectrumAnalyzer.Models
         }
 
         #endregion Properties
+
+        #region Methods
+
+        public override string ToString() => $"{MinFrequency} - {MaxFrequency} Hz";
+
+        #endregion Methods
     }
 }

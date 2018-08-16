@@ -52,8 +52,8 @@ namespace SpectrumAnalyzer.Models
         private Queue<float[]> _history;
         private int _minimumFrequencyIndex;
         private int _maximumFrequencyIndex;
-        private int[] _spectrumIndexMax;
-        private int[] _spectrumLogScaleIndexMax;
+        private int[] _spectrumLinearScaleIndexMax;
+        private int[] _spectrumLogarithmicScaleIndexMax;
 
         private int _rate;
         private int _bins;
@@ -266,7 +266,7 @@ namespace SpectrumAnalyzer.Models
             var soundInSource = new SoundInSource(_soundIn);
             _spectrumProvider = new SpectrumProvider(soundInSource.WaveFormat.Channels,
                 soundInSource.WaveFormat.SampleRate, FftSize);
-            UpdateFrequencyMapping(); // TODO apply min/max to bin
+            UpdateFrequencyMapping();
 
             var notificationSource = new SingleBlockNotificationStream(soundInSource.ToSampleSource());
             notificationSource.SingleBlockRead += (s, a) => _spectrumProvider.Add(a.Left, a.Right);
@@ -317,23 +317,38 @@ namespace SpectrumAnalyzer.Models
             var indexCount = _maximumFrequencyIndex - _minimumFrequencyIndex;
             var linearIndexBucketSize = Math.Round(indexCount / (double) _bins, 3);
 
-            _spectrumIndexMax = _spectrumIndexMax.CheckBuffer(_bins, true);
-            _spectrumLogScaleIndexMax = _spectrumLogScaleIndexMax.CheckBuffer(_bins, true);
+            _spectrumLinearScaleIndexMax = _spectrumLinearScaleIndexMax.CheckBuffer(_bins, true);
+            _spectrumLogarithmicScaleIndexMax = _spectrumLogarithmicScaleIndexMax.CheckBuffer(_bins, true);
 
             var maxLog = Math.Log(_bins, _bins);
-            for (var i = 1; i < _bins; i++)
+            for (var i = 1; i <= _bins; i++)
             {
+                var map = i - 1;
                 var logIndex =
                     (int) ((maxLog - Math.Log(_bins + 1 - i, _bins + 1)) * indexCount) +
                     _minimumFrequencyIndex;
 
-                _spectrumIndexMax[i - 1] = _minimumFrequencyIndex + (int) (i * linearIndexBucketSize);
-                _spectrumLogScaleIndexMax[i - 1] = logIndex;
+                _spectrumLinearScaleIndexMax[map] = _minimumFrequencyIndex + (int) (i * linearIndexBucketSize);
+                _spectrumLogarithmicScaleIndexMax[map] = logIndex;
+
+                if (FrequencyBins is null) continue; // apply band to bin:
+                var relatedBin = FrequencyBins[map];
+
+                relatedBin.MinFrequency = map > 0
+                    ? _spectrumProvider.GetFrequency(_logarithmicX
+                        ? _spectrumLogarithmicScaleIndexMax[map - 1]
+                        : _spectrumLinearScaleIndexMax[map - 1]) + 1
+                    : MinFrequency;
+                relatedBin.MaxFrequency = map < _bins - 1
+                    ? _spectrumProvider.GetFrequency(_logarithmicX
+                        ? _spectrumLogarithmicScaleIndexMax[map]
+                        : _spectrumLinearScaleIndexMax[map])
+                    : MaxFrequency;
             }
 
             if (_bins > 0)
-                _spectrumIndexMax[_spectrumIndexMax.Length - 1] =
-                    _spectrumLogScaleIndexMax[_spectrumLogScaleIndexMax.Length - 1] = _maximumFrequencyIndex;
+                _spectrumLinearScaleIndexMax[_spectrumLinearScaleIndexMax.Length - 1] =
+                    _spectrumLogarithmicScaleIndexMax[_spectrumLogarithmicScaleIndexMax.Length - 1] = _maximumFrequencyIndex;
         }
 
         // based on the https://github.com/filoe/cscore visualization example
@@ -375,10 +390,10 @@ namespace SpectrumAnalyzer.Models
                 var recalc = true;
                 value = Math.Max(0, Math.Max(value0, value));
 
-                while (spectrumPointIndex <= _spectrumIndexMax.Length - 1 &&
+                while (spectrumPointIndex <= _spectrumLinearScaleIndexMax.Length - 1 &&
                        i == (_logarithmicX
-                           ? _spectrumLogScaleIndexMax[spectrumPointIndex]
-                           : _spectrumIndexMax[spectrumPointIndex]))
+                           ? _spectrumLogarithmicScaleIndexMax[spectrumPointIndex]
+                           : _spectrumLinearScaleIndexMax[spectrumPointIndex]))
                 {
                     if (!recalc)
                         value = lastValue;
